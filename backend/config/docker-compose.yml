@@ -1,0 +1,19 @@
+version: '3.8'
+name: url-shortener-backend
+services:
+  mongo:
+    image: mongo:8
+    container_name: url-shortner-mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo-data:/data/db
+
+  redis:
+    image: redis:7
+    container_name: url-shortner-redis
+    ports:
+      - 6379:6379
+
+volumes:
+  mongo-data:
