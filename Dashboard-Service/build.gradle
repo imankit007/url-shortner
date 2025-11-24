@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.github.mankit007.recipe'
 version = '0.0.1-SNAPSHOT'
-description = 'Dashboard Service to serve REST API's'
+description = 'Dashboard Service to serve REST API`s'
 
 java {
 	toolchain {
