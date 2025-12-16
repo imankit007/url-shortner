@@ -1,0 +1,28 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 40px;
+    margin-left: 40px;
+    margin-right: 40px;
+    margin-top: 30px;
+    padding: 0 20px;
+}
+
+.navbar-links-separator{
+    width: 20vw;
+}
+
+
+.nav-actions{
+    display: flex;
+    margin-inline: 0.25rem;
+    justify-content: space-between;
+}
+
+
+.nav-actions button{
+    border-radius: 60px;
+}

@@ -1,0 +1,132 @@
+/* ICONS */
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+
+.landing-main-container {
+  position: relative;
+  height: 100%;
+  display: block;
+  justify-content: center;
+  // background: radial-gradient(circle at top left, #7c3aed, #4f46e5);
+  margin: 0;
+  padding: 0;
+  // padding-top: 20px;
+  border: 1px solid white;
+}
+/* FULL HERO BACKGROUND */
+.hero {
+  position: relative;
+  height:   100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid red;
+}
+
+/* BACKGROUND 3D ORBS */
+.orb {
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.6;
+}
+
+.orb1 {
+  background: #ff61d8;
+  top: -50px;
+  left: -80px;
+}
+
+.orb2 {
+  background: #5df3ff;
+  bottom: -60px;
+  right: -60px;
+}
+
+/* MAIN 3D GLASS CARD */
+.glass-card {
+  position: relative;
+  padding: 50px;
+  width: 75%;
+  max-width: 600px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+
+  /* GLASS EFFECT */
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+
+  /* 3D DEPTH + SHADOW */
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.25),
+    0 0 60px rgba(255, 255, 255, 0.12) inset;
+
+  text-align: center;
+  color: white;
+
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease;
+}
+
+/* 3D BUTTONS */
+.btn.glass {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: 14px;
+
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.25s ease;
+}
+
+.btn.glass:hover {
+  background: rgba(255, 255, 255, 0.30);
+  transform: translateZ(12px) scale(1.06);
+}
+
+/* BUTTON WRAPPER */
+.button-row {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* TEXT */
+h1 {
+  font-size: 2.8rem;
+  margin-bottom: 12px;
+}
+
+.subtext {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  margin-bottom: 30px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .glass-card {
+    padding: 35px 20px;
+  }
+  h1 {
+    font-size: 2.2rem;
+  }
+  .btn.glass {
+    width: 100%;
+    justify-content: center;
+  }
+}
