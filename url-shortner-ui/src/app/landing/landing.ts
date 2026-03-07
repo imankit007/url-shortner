@@ -1,11 +1,9 @@
 import { AfterViewInit, Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
-
 import { Navbar } from '../navbar/navbar';
 
 @Component({
   selector: 'app-landing',
-  imports: [RouterLink, Navbar],
+  imports: [Navbar],
   templateUrl: './landing.html',
   styleUrl: './landing.scss',
 })

@@ -1,0 +1,19 @@
+<form [formGroup]="shortUrlForm" (ngSubmit)="onSubmit()">
+
+  <div formArrayName="links">
+
+    @for (group of links.controls; track group; let i = $index) {
+    <div [formGroupName]="i">
+      <label for="url"> Long URL: </label>
+      <input id="url" type="text" formControlName="url" />
+      <button type="button" (click)="removeLink(i)">Remove</button>
+    </div>
+    }
+  </div>
+  <button type="button" (click)="addLink()">Add </button>
+
+  <button type="submit" [disabled]="shortUrlForm.invalid">
+    Submit
+  </button>
+
+</form>
