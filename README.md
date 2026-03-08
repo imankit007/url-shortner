@@ -5,6 +5,7 @@ This repository is organized as a small monorepo with each runnable application 
 ## Structure
 
 - `apps/url-shortener-api`: Go API for creating and resolving short URLs
+- `apps/redirector-service`: Go redirect service for public short-code resolution
 - `apps/auth-service`: Go auth service that issues JWTs
 - `apps/url-shortener-web`: Angular frontend
 - `apps/analytics-service`: analytics service

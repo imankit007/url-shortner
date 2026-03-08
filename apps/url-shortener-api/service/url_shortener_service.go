@@ -18,7 +18,6 @@ var (
 
 type URLService interface {
 	CreateShortURLs(ctx context.Context, authenticatedUser model.AuthenticatedUser, shortenRequest model.ShortenRequest) ([]model.ShortenResponse, error)
-	ResolveRedirectURL(ctx context.Context, code string) (string, error)
 	ListURLMappings(ctx context.Context, authenticatedUser model.AuthenticatedUser) ([]model.URLEntry, error)
 }
 
@@ -75,27 +74,6 @@ func (s *urlService) CreateShortURLs(
 	}
 
 	return shortenResponses, nil
-}
-
-func (s *urlService) ResolveRedirectURL(ctx context.Context, code string) (string, error) {
-	decodedValues, err := s.hashIDEncoder.DecodeInt64WithError(code)
-	if err != nil || len(decodedValues) == 0 {
-		return "", ErrInvalidShortCode
-	}
-
-	urlEntry, err := s.urlRepository.FindByCode(ctx, decodedValues[0])
-	if err != nil {
-		if errors.Is(err, repository.ErrURLNotFound) {
-			return "", ErrShortURLNotFound
-		}
-		return "", err
-	}
-
-	if strings.HasPrefix(urlEntry.OriginalURL, "http://") || strings.HasPrefix(urlEntry.OriginalURL, "https://") {
-		return urlEntry.OriginalURL, nil
-	}
-
-	return "https://" + urlEntry.OriginalURL, nil
 }
 
 func (s *urlService) ListURLMappings(ctx context.Context, authenticatedUser model.AuthenticatedUser) ([]model.URLEntry, error) {

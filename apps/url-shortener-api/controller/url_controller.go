@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -40,23 +39,6 @@ func (c *URLController) CreateShortURLsHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response)
-}
-
-func (c *URLController) RedirectToOriginalURLHandler(ctx *gin.Context) {
-	redirectURL, err := c.urlService.ResolveRedirectURL(ctx.Request.Context(), ctx.Param("code"))
-	if err != nil {
-		switch {
-		case errors.Is(err, service.ErrInvalidShortCode):
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid short code"})
-		case errors.Is(err, service.ErrShortURLNotFound):
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "short url not found"})
-		default:
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load short url"})
-		}
-		return
-	}
-
-	ctx.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
 
 func (c *URLController) ListURLMappingsHandler(ctx *gin.Context) {

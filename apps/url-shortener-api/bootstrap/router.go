@@ -31,6 +31,5 @@ func NewRouter(
 	apiV1.Use(jwtAuthenticationMiddleware.RequireAuthenticatedUser())
 	apiV1.GET("/urls", urlController.ListURLMappingsHandler)
 	apiV1.POST("/urls/shorten", urlController.CreateShortURLsHandler)
-	engine.GET("/:code", urlController.RedirectToOriginalURLHandler)
 	return engine
 }
