@@ -32,7 +32,7 @@ func InitializeRouter() (*gin.Engine, error) {
 	if err != nil {
 		return nil, err
 	}
-	urlCodeCounter := counter.NewURLCodeCounter()
+	urlCodeCounter := counter.NewURLCodeCounter(redisClient)
 	applicationBaseURL := NewApplicationBaseURL()
 	tokenAuthenticationService := service.NewTokenAuthenticationService(authServicePublicKey, authTokenIssuer)
 	jwtAuthenticationMiddleware := middleware.NewJWTAuthenticationMiddleware(tokenAuthenticationService)

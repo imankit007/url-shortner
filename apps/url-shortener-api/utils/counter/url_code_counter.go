@@ -1,17 +1,32 @@
 package counter
 
-import "sync/atomic"
+import (
+	"context"
+	"time"
+
+	"github.com/redis/go-redis/v9"
+)
+
+const redisCounterKey = "url-shortener:global-counter"
 
 type URLCodeCounter struct {
-	value atomic.Uint64
+	redisClient *redis.Client
 }
 
-func NewURLCodeCounter() *URLCodeCounter {
-	urlCodeCounter := &URLCodeCounter{}
-	urlCodeCounter.value.Store(123456)
-	return urlCodeCounter
+func NewURLCodeCounter(redisClient *redis.Client) *URLCodeCounter {
+	return &URLCodeCounter{
+		redisClient: redisClient,
+	}
 }
 
-func (c *URLCodeCounter) Next() uint64 {
-	return c.value.Add(1) - 1
+func (c *URLCodeCounter) Next(ctx context.Context) (uint64, error) {
+	callCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
+	val, err := c.redisClient.Incr(callCtx, redisCounterKey).Result()
+	if err != nil {
+		return 0, err
+	}
+
+	return uint64(val), nil
 }
