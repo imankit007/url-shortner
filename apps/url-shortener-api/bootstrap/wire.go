@@ -16,7 +16,9 @@ func InitializeRouter() (*gin.Engine, error) {
 	panic(wire.Build(
 		infrastructure.NewMongoClient,
 		infrastructure.NewURLCollection,
+		infrastructure.NewRedisClient,
 		repository.NewMongoURLRepository,
+		repository.NewCachedURLRepository,
 		NewHashIDEncoder,
 		NewApplicationBaseURL,
 		counter.NewURLCodeCounter,

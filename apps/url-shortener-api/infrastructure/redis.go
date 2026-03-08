@@ -6,9 +6,19 @@ import (
 
 var RedisClient *redis.Client
 
-func InitializeRedisClient() {
+func NewRedisClient() *redis.Client {
+	if RedisClient != nil {
+		return RedisClient
+	}
+
 	RedisClient = redis.NewClient(&redis.Options{
 		Addr: "localhost:6379",
 		DB:   0,
 	})
+
+	return RedisClient
+}
+
+func InitializeRedisClient() {
+	NewRedisClient()
 }

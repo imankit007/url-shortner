@@ -19,7 +19,9 @@ func InitializeRouter() (*gin.Engine, error) {
 		return nil, err
 	}
 	urlCollection := infrastructure.NewURLCollection(mongoClient)
-	urlRepository := repository.NewMongoURLRepository(urlCollection)
+	redisClient := infrastructure.NewRedisClient()
+	mongoURLRepository := repository.NewMongoURLRepository(urlCollection)
+	urlRepository := repository.NewCachedURLRepository(mongoURLRepository, redisClient)
 	hashIDEncoder, err := NewHashIDEncoder()
 	if err != nil {
 		return nil, err

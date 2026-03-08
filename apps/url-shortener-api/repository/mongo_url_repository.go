@@ -12,7 +12,7 @@ type MongoURLRepository struct {
 	urlCollection *mongo.Collection
 }
 
-func NewMongoURLRepository(urlCollection *mongo.Collection) URLRepository {
+func NewMongoURLRepository(urlCollection *mongo.Collection) *MongoURLRepository {
 	return &MongoURLRepository{
 		urlCollection: urlCollection,
 	}
