@@ -19,7 +19,7 @@ public class AnalyticsServiceApplication {
     private static final String KAFKA_BOOTSTRAP_SERVERS = "localhost:9092";
     private static final String KAFKA_TOPIC = "click-events";
     private static final String KAFKA_GROUP_ID = "analytics-flink-pipeline";
-    private static final String CLICKHOUSE_JDBC_URL = "jdbc:clickhouse://localhost:8123/url_shortener";
+    private static final String CLICKHOUSE_JDBC_URL = "jdbc:clickhouse://localhost:8123/url_shortener?user=default&password=password";
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();

@@ -14,6 +14,7 @@ import com.github.imankit007.analytics_service.model.ClickEvent;
 
 public class ClickHouseSink implements Sink<ClickEvent> {
 
+
     private final String jdbcUrl;
 
     public ClickHouseSink(String jdbcUrl) {

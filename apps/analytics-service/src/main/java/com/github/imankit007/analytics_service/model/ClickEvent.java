@@ -48,4 +48,17 @@ public class ClickEvent implements Serializable {
 
     public String getIpAddress() { return ipAddress; }
     public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+
+    @Override
+    public String toString() {
+        return "ClickEvent{" +
+                "shortCode='" + shortCode + '\'' +
+                ", originalUrl='" + originalUrl + '\'' +
+                ", tenantId='" + tenantId + '\'' +
+                ", timestamp='" + timestamp + '\'' +
+                ", userAgent='" + userAgent + '\'' +
+                ", referer='" + referer + '\'' +
+                ", ipAddress='" + ipAddress + '\'' +
+                '}';
+    }
 }
