@@ -1,30 +1,47 @@
-<!-- <div class="landing-main-container">
-  <app-navbar />
-  <div class="hero">
+<app-navbar />
 
-    <div class="orb orb1"></div>
-    <div class="orb orb2"></div>
+<section class="landing-page">
+  <div class="hero-copy">
+    <p class="eyebrow">Multi-tenant URL Operations</p>
+    <h1>Manage branded short links with tenant-aware access and a live operations dashboard.</h1>
+    <p class="lede">
+      Sign in as a tenant user, create short URLs behind JWT auth, and monitor your link inventory
+      from one focused workspace.
+    </p>
 
-
-    <div class="glass-card" id="card">
-      <h1>Welcome to Your App</h1>
-      <p class="subtext">
-        A clean, modern and immersive experience.
-      </p>
-
-      <div class="button-row">
-        <a routerLink="/login" class="btn glass">
-          <span class="material-icons">login</span>
-          Get Started
-        </a>
-        <a routerLink="/signup" class="btn glass">
-          <span class="material-icons">info</span>
-          Learn More
-        </a>
-      </div>
+    <div class="hero-actions">
+      <a routerLink="/login" class="primary-action">Open Dashboard</a>
+      <a routerLink="/login" class="secondary-action">Tenant Login</a>
     </div>
 
+    <div class="credentials-card">
+      <h2>Demo Credentials</h2>
+      <div class="credential-row">
+        <span>Tenant 1</span>
+        <code>owner@tenant1.local / tenant1-password</code>
+      </div>
+      <div class="credential-row">
+        <span>Tenant 2</span>
+        <code>owner@tenant2.local / tenant2-password</code>
+      </div>
+    </div>
   </div>
-</div> -->
 
-<app-navbar />
+  <div class="hero-panel">
+    <div class="hero-panel-card">
+      <p class="panel-label">Tenant Snapshot</p>
+      <div class="panel-metric">
+        <strong>JWT</strong>
+        <span>tenant-aware access across services</span>
+      </div>
+      <div class="panel-metric">
+        <strong>Redis</strong>
+        <span>cached reads on redirect lookup path</span>
+      </div>
+      <div class="panel-metric">
+        <strong>Dashboard</strong>
+        <span>URL inventory and domain-level analytics per tenant</span>
+      </div>
+    </div>
+  </div>
+</section>

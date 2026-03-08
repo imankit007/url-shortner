@@ -1,20 +1,22 @@
-<om-shine-border animationDuration="10s">
-  <nav class="navbar">
+<nav class="navbar">
+  <a routerLink="/" class="brand">Short.ly</a>
 
-    <h2>Short<span style="color: rgb(236, 7, 187);">.</span>ly</h2>
-    <span class="navbar-links-separator"></span>
+  <div class="nav-links">
+    <a routerLink="/">Overview</a>
+    @if (isAuthenticated()) {
+      <a routerLink="/dashboard">Dashboard</a>
+    }
+  </div>
 
-    <a routerLink="/">About</a>
-    <a routerLink="/">Features</a>
-    <a routerLink="/">Pricing</a>
-    <a routerLink="/">Contact</a>
-
-    <span class="navbar-links-separator"></span>
-
-    <div class="nav-actions">
-      <button pButton>Login</button>
-      <button pButton>Signup</button>
-    </div>
-
-  </nav>
-</om-shine-border>
+  <div class="nav-actions">
+    @if (isAuthenticated()) {
+      <div class="tenant-chip">
+        <span>{{ tenantLabel() }}</span>
+        <small>{{ user()?.email }}</small>
+      </div>
+      <button type="button" class="ghost-button" (click)="logout()">Logout</button>
+    } @else {
+      <a routerLink="/login" class="ghost-button">Login</a>
+    }
+  </div>
+</nav>

@@ -1,0 +1,127 @@
+<app-navbar />
+
+<section class="dashboard-page">
+  <div class="dashboard-header">
+    <div>
+      <p class="eyebrow">Tenant Dashboard</p>
+      <h1>Operate short URLs inside {{ authService.user()?.tenant_id }}.</h1>
+      <p class="subtext">
+        Signed in as {{ authService.user()?.email }}. The metrics below are scoped to your tenant.
+      </p>
+    </div>
+
+    <button type="button" class="refresh-button" (click)="refreshDashboard()" [disabled]="isRefreshing()">
+      {{ isRefreshing() ? 'Refreshing...' : 'Refresh Data' }}
+    </button>
+  </div>
+
+  @if (errorMessage()) {
+    <p class="banner-error">{{ errorMessage() }}</p>
+  }
+
+  <div class="metrics-grid">
+    <article class="metric-card">
+      <span>Total Links</span>
+      <strong>{{ totalLinks() }}</strong>
+      <small>All short URLs created inside this tenant</small>
+    </article>
+
+    <article class="metric-card">
+      <span>Unique Domains</span>
+      <strong>{{ uniqueDomains() }}</strong>
+      <small>Distinct destination hosts</small>
+    </article>
+
+    <article class="metric-card radial-card">
+      <span>Domain Mix</span>
+      <div class="radial-meter" [style.--progress]="radialValue() + '%'">
+        <strong>{{ radialValue() }}%</strong>
+      </div>
+      <small>Share of domain diversity across the link set</small>
+    </article>
+  </div>
+
+  <div class="dashboard-grid">
+    <section class="panel">
+      <div class="panel-heading">
+        <h2>Create Short URLs</h2>
+        <p>Batch create multiple links for the active tenant.</p>
+      </div>
+
+      <form [formGroup]="createUrlForm" (ngSubmit)="submit()" class="url-form">
+        <div formArrayName="links" class="link-list">
+          @for (group of links.controls; track group; let index = $index) {
+            <div [formGroupName]="index" class="link-row">
+              <input type="text" formControlName="url" placeholder="https://example.com/tenant-campaign" />
+              <button type="button" class="remove-link" (click)="removeLink(index)">Remove</button>
+            </div>
+          }
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="secondary-button" (click)="addLink()">Add URL</button>
+          <button type="submit" class="primary-button" [disabled]="isSubmitting()">
+            {{ isSubmitting() ? 'Creating...' : 'Create Short URLs' }}
+          </button>
+        </div>
+      </form>
+
+      @if (latestResponses().length) {
+        <div class="latest-results">
+          <h3>Latest Results</h3>
+          @for (result of latestResponses(); track result.short_url) {
+            <div class="result-row">
+              <div>
+                <strong>{{ result.short_url }}</strong>
+                <p>{{ result.long_url }}</p>
+              </div>
+              <button type="button" class="secondary-button" (click)="copyToClipboard(result.short_url)">
+                Copy
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="panel">
+      <div class="panel-heading">
+        <h2>Domain Distribution</h2>
+        <p>Live analytics derived from tenant-owned destination inventory.</p>
+      </div>
+
+      @if (topDomains().length) {
+        <div class="domain-chart">
+          @for (domain of topDomains(); track domain.domain) {
+            <div class="domain-row">
+              <div class="domain-labels">
+                <strong>{{ domain.domain }}</strong>
+                <span>{{ domain.count }} links</span>
+              </div>
+              <div class="domain-bar">
+                <div class="domain-bar-fill" [style.width.%]="domain.width"></div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="empty-state">Create some short URLs to populate tenant analytics.</p>
+      }
+
+      <div class="tenant-table">
+        <div class="tenant-table-header">
+          <span>Code</span>
+          <span>Destination</span>
+        </div>
+        @for (entry of urlEntries(); track entry.code) {
+          <div class="tenant-table-row">
+            <strong>{{ entry.code }}</strong>
+            <span>{{ entry.url }}</span>
+          </div>
+        } @empty {
+          <p class="empty-state">No URLs found for this tenant yet.</p>
+        }
+      </div>
+    </section>
+  </div>
+</section>

@@ -1,1 +1,41 @@
-<p>login works!</p>
+<app-navbar />
+
+<section class="login-page">
+  <div class="login-copy">
+    <p class="eyebrow">Tenant Access</p>
+    <h1>Authenticate once, then manage URLs inside your tenant workspace.</h1>
+    <p>
+      The dashboard uses JWTs issued by the auth service. Management calls are scoped to the
+      tenant embedded in your token.
+    </p>
+
+    <div class="quick-fill">
+      <button type="button" (click)="useTenantOne()">Use Tenant 1 Demo</button>
+      <button type="button" (click)="useTenantTwo()">Use Tenant 2 Demo</button>
+    </div>
+  </div>
+
+  <form class="login-card" [formGroup]="loginForm" (ngSubmit)="submit()">
+    <h2>Sign In</h2>
+
+    <label>
+      <span>Email</span>
+      <input type="email" formControlName="email" placeholder="owner@tenant1.local" />
+    </label>
+
+    <label>
+      <span>Password</span>
+      <input type="password" formControlName="password" placeholder="tenant1-password" />
+    </label>
+
+    @if (errorMessage()) {
+      <p class="error-message">{{ errorMessage() }}</p>
+    }
+
+    <button type="submit" class="submit-button" [disabled]="isSubmitting()">
+      {{ isSubmitting() ? 'Signing in...' : 'Open Dashboard' }}
+    </button>
+
+    <a routerLink="/" class="back-link">Back to overview</a>
+  </form>
+</section>

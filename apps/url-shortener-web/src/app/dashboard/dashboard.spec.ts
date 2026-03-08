@@ -1,18 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { UrlForm } from './url-form';
+import { Dashboard } from './dashboard';
 
-describe('UrlForm', () => {
-  let component: UrlForm;
-  let fixture: ComponentFixture<UrlForm>;
+describe('Dashboard', () => {
+  let component: Dashboard;
+  let fixture: ComponentFixture<Dashboard>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [UrlForm]
-    })
-    .compileComponents();
+      imports: [Dashboard],
+    }).compileComponents();
 
-    fixture = TestBed.createComponent(UrlForm);
+    fixture = TestBed.createComponent(Dashboard);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,28 +1,81 @@
 .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background-color: #f0f0f0;
-    border-radius: 40px;
-    margin-left: 40px;
-    margin-right: 40px;
-    margin-top: 30px;
-    padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem clamp(1.25rem, 3vw, 3rem);
+  backdrop-filter: blur(22px);
 }
 
-.navbar-links-separator{
-    width: 20vw;
+.brand,
+.nav-links a,
+.ghost-button {
+  text-decoration: none;
+  color: var(--text-strong);
 }
 
-
-.nav-actions{
-    display: flex;
-    margin-inline: 0.25rem;
-    justify-content: space-between;
+.brand {
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: -0.06em;
 }
 
+.nav-links {
+  display: flex;
+  gap: 1rem;
+}
 
-.nav-actions button{
-    border-radius: 60px;
+.nav-links a {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.tenant-chip {
+  display: grid;
+  padding: 0.65rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tenant-chip span {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--brand-accent);
+}
+
+.tenant-chip small {
+  color: var(--text-muted);
+}
+
+.ghost-button {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  padding: 0.8rem 1rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .navbar {
+    flex-wrap: wrap;
+  }
+
+  .nav-links {
+    order: 3;
+    width: 100%;
+  }
 }
