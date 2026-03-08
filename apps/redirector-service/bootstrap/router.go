@@ -17,6 +17,7 @@ func InitializeRouter() (*gin.Engine, error) {
 
 	urlCollection := infrastructure.NewURLCollection(mongoClient)
 	redisClient := infrastructure.NewRedisClient()
+	kafkaWriter := infrastructure.NewKafkaWriter()
 	hashIDEncoder, err := NewHashIDEncoder()
 	if err != nil {
 		return nil, err
@@ -24,7 +25,8 @@ func InitializeRouter() (*gin.Engine, error) {
 
 	mongoURLRepository := repository.NewMongoURLRepository(urlCollection)
 	urlRepository := repository.NewCachedURLRepository(mongoURLRepository, redisClient)
-	redirectService := service.NewRedirectService(urlRepository, hashIDEncoder)
+	clickEventPublisher := service.NewClickEventPublisher(kafkaWriter)
+	redirectService := service.NewRedirectService(urlRepository, hashIDEncoder, clickEventPublisher)
 	redirectController := controller.NewRedirectController(redirectService)
 
 	engine := gin.Default()

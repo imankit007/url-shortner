@@ -19,7 +19,14 @@ func NewRedirectController(redirectService service.RedirectService) *RedirectCon
 }
 
 func (c *RedirectController) RedirectToOriginalURLHandler(ctx *gin.Context) {
-	redirectURL, err := c.redirectService.ResolveRedirectURL(ctx.Request.Context(), ctx.Param("code"))
+	req := service.RedirectRequest{
+		Code:      ctx.Param("code"),
+		UserAgent: ctx.GetHeader("User-Agent"),
+		Referer:   ctx.GetHeader("Referer"),
+		IPAddress: ctx.ClientIP(),
+	}
+
+	redirectURL, err := c.redirectService.ResolveRedirectURL(ctx.Request.Context(), req)
 	if err != nil {
 		switch {
 		case errors.Is(err, service.ErrInvalidShortCode):
