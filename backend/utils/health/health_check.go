@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/imankit007/url-shortner/inits"
+	"github.com/imankit007/url-shortner/infrastructure"
 )
 
 // HealthStatus represents the health status of a service
@@ -15,17 +15,17 @@ type HealthStatus struct {
 
 // CheckRedisHealth checks if Redis is healthy
 func CheckRedisHealth() HealthStatus {
-	if inits.Redis == nil {
+	if infrastructure.RedisClient == nil {
 		return HealthStatus{
 			Status:  "unhealthy",
 			Message: "Redis client not initialized",
 		}
 	}
-	
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err := inits.Redis.Ping(ctx).Result()
+	_, err := infrastructure.RedisClient.Ping(ctx).Result()
 	if err != nil {
 		return HealthStatus{
 			Status:  "unhealthy",
@@ -40,17 +40,17 @@ func CheckRedisHealth() HealthStatus {
 
 // CheckMongoHealth checks if MongoDB is healthy
 func CheckMongoHealth() HealthStatus {
-	if inits.Client == nil {
+	if infrastructure.MongoClient == nil {
 		return HealthStatus{
 			Status:  "unhealthy",
 			Message: "MongoDB client not initialized",
 		}
 	}
-	
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := inits.Client.Ping(ctx, nil)
+	err := infrastructure.MongoClient.Ping(ctx, nil)
 	if err != nil {
 		return HealthStatus{
 			Status:  "unhealthy",
@@ -65,7 +65,7 @@ func CheckMongoHealth() HealthStatus {
 
 // OverallHealth represents the overall health of all services
 type OverallHealth struct {
-	Status string                    `json:"status"`
+	Status   string                  `json:"status"`
 	Services map[string]HealthStatus `json:"services"`
 }
 
@@ -92,4 +92,3 @@ func CheckOverallHealth() OverallHealth {
 		Services: services,
 	}
 }
-

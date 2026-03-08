@@ -11,15 +11,19 @@ export interface LinkRequest {
   url: string
 }
 
+export interface ShortUrlResponse {
+  long_url: string,
+  short_url: string
+}
 
 @Injectable({ providedIn: 'root' })
 export class ShortUrlService {
 
   constructor(private http: HttpClient) { }
 
-  createShortUrl(data: ShortUrlRequest): Observable<any> {
+  createShortUrl(data: ShortUrlRequest): Observable<Array<ShortUrlResponse>> {
     return this.http.post<any>(
-      'http://localhost:8080/shorten', data
+      'http://localhost:8080/api/v1/urls/shorten', data
     );
   }
 

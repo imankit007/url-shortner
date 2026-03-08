@@ -50,7 +50,12 @@ export class UrlForm implements OnInit {
 
       var response = this.shortUrlService.createShortUrl(req)
 
-      console.log(response.subscribe());
+      response.subscribe({
+
+        next: value => console.log(value),
+        error: err => console.error(err),
+        complete: () => console.log("Complete")
+      });
 
 
     }
