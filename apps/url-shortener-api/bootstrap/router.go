@@ -17,7 +17,7 @@ func NewHashIDEncoder() (*hashids.HashID, error) {
 }
 
 func NewApplicationBaseURL() string {
-	return "http://localhost:8080"
+	return "http://localhost:8082"
 }
 
 func NewRouter(
@@ -25,7 +25,10 @@ func NewRouter(
 	jwtAuthenticationMiddleware *middleware.JWTAuthenticationMiddleware,
 ) *gin.Engine {
 	engine := gin.Default()
-	engine.Use(cors.Default())
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowAllOrigins = true
+	corsConfig.AddAllowHeaders("Authorization")
+	engine.Use(cors.New(corsConfig))
 
 	apiV1 := engine.Group("/api/v1")
 	apiV1.Use(jwtAuthenticationMiddleware.RequireAuthenticatedUser())

@@ -28,5 +28,5 @@ func InitializeRouter() (http.Handler, error) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/v1/auth/token", authController.CreateAccessTokenHandler)
 	mux.HandleFunc("GET /api/v1/auth/public-key", authController.PublicKeyHandler)
-	return mux, nil
+	return infrastructure.CORSMiddleware(mux), nil
 }

@@ -47,6 +47,7 @@ func NewRedirectService(
 
 func (s *redirectService) ResolveRedirectURL(ctx context.Context, req RedirectRequest) (string, error) {
 	decodedValues, err := s.hashIDEncoder.DecodeInt64WithError(req.Code)
+
 	if err != nil || len(decodedValues) == 0 {
 		return "", ErrInvalidShortCode
 	}

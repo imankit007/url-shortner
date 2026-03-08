@@ -10,5 +10,6 @@ func NewKafkaWriter() *kafka.Writer {
 		Topic:    ClickEventsTopic,
 		Balancer: &kafka.LeastBytes{},
 		Async:    true,
+		AllowAutoTopicCreation: true,
 	}
 }
