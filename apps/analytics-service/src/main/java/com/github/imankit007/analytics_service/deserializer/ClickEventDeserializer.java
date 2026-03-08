@@ -32,12 +32,12 @@ public class ClickEventDeserializer implements DeserializationSchema<ClickEvent>
     }
 
     @Override
-    public boolean isEndOfStream(ClickEvent nextElement) {
-        return false;
+    public TypeInformation<ClickEvent> getProducedType() {
+        return TypeInformation.of(ClickEvent.class);
     }
 
     @Override
-    public TypeInformation<ClickEvent> getProducedType() {
-        return TypeInformation.of(ClickEvent.class);
+    public boolean isEndOfStream(ClickEvent nextElement) {
+        return false;
     }
 }

@@ -1,58 +1,50 @@
 package com.github.mankit007.recipe.Dashboard.Service.service;
 
-import java.util.Comparator;
+import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import com.github.mankit007.recipe.Dashboard.Service.dto.AnalyticsDTO;
 import com.github.mankit007.recipe.Dashboard.Service.dto.AnalyticsDTO.ClickRecord;
 import com.github.mankit007.recipe.Dashboard.Service.dto.AnalyticsDTO.ClickSummary;
 import com.github.mankit007.recipe.Dashboard.Service.dto.AnalyticsDTO.PaginatedClicks;
 import com.github.mankit007.recipe.Dashboard.Service.dto.AnalyticsDTO.RefererStat;
 import com.github.mankit007.recipe.Dashboard.Service.dto.AnalyticsDTO.TimeSeriesPoint;
 import com.github.mankit007.recipe.Dashboard.Service.dto.AnalyticsDTO.TopLink;
-import com.github.mankit007.recipe.Dashboard.Service.model.ClickAggregate;
-import com.github.mankit007.recipe.Dashboard.Service.repository.ClickAggregateRepository;
 import com.github.mankit007.recipe.Dashboard.Service.repository.ClickEventRepository;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @Service
 @RequiredArgsConstructor
 public class AnalyticsService {
 
+    private final JdbcTemplate jdbcTemplate;
     private final ClickEventRepository clickEventRepository;
-    private final ClickAggregateRepository clickAggregateRepository;
-    private final ReactiveMongoTemplate mongoTemplate;
 
     public Mono<ClickSummary> getSummary(String tenantId) {
-        Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("tenant_id").is(tenantId)),
-                Aggregation.group()
-                        .count().as("totalClicks")
-                        .addToSet("ip_address").as("uniqueIPs")
-                        .addToSet("short_code").as("uniqueShortCodes"));
+        return Mono.fromCallable(() -> {
+            String sql = """
+                    SELECT
+                        count() AS total_clicks,
+                        uniqExact(ip_address) AS unique_ips,
+                        uniqExact(short_code) AS unique_short_codes
+                    FROM url_shortener.click_events
+                    WHERE tenant_id = ?
+                    """;
 
-        return mongoTemplate.aggregate(aggregation, "click_events", Map.class)
-                .next()
-                .map(result -> ClickSummary.builder()
-                        .totalClicks(((Number) result.get("totalClicks")).longValue())
-                        .uniqueIPs(((List<?>) result.get("uniqueIPs")).size())
-                        .uniqueShortCodes(((List<?>) result.get("uniqueShortCodes")).size())
-                        .build())
-                .defaultIfEmpty(ClickSummary.builder()
-                        .totalClicks(0)
-                        .uniqueIPs(0)
-                        .uniqueShortCodes(0)
-                        .build());
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) ->
+                    ClickSummary.builder()
+                            .totalClicks(rs.getLong("total_clicks"))
+                            .uniqueIPs(rs.getLong("unique_ips"))
+                            .uniqueShortCodes(rs.getLong("unique_short_codes"))
+                            .build(),
+                    tenantId);
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 
     public Mono<PaginatedClicks> getRecentClicks(String tenantId, int page, int size) {
@@ -78,88 +70,122 @@ public class AnalyticsService {
     }
 
     public Mono<List<TopLink>> getTopLinks(String tenantId, int limit, String granularity) {
-        String collectionName = resolveCollectionName(granularity);
+        return Mono.fromCallable(() -> {
+            String table = resolveAggregateTable(granularity);
 
-        Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("tenant_id").is(tenantId)),
-                Aggregation.group("short_code")
-                        .sum("click_count").as("totalClicks")
-                        .first("original_url").as("originalUrl"),
-                Aggregation.sort(org.springframework.data.domain.Sort.by(
-                        org.springframework.data.domain.Sort.Direction.DESC, "totalClicks")),
-                Aggregation.limit(limit));
+            String sql = String.format("""
+                    SELECT
+                        short_code,
+                        any(original_url) AS original_url,
+                        sum(click_count) AS total_clicks
+                    FROM %s
+                    WHERE tenant_id = ?
+                    GROUP BY short_code
+                    ORDER BY total_clicks DESC
+                    LIMIT ?
+                    """, table);
 
-        return mongoTemplate.aggregate(aggregation, collectionName, Map.class)
-                .map(doc -> TopLink.builder()
-                        .shortCode((String) doc.get("_id"))
-                        .originalUrl((String) doc.get("originalUrl"))
-                        .totalClicks(((Number) doc.get("totalClicks")).longValue())
-                        .build())
-                .collectList();
+            return jdbcTemplate.query(sql, (rs, rowNum) ->
+                    TopLink.builder()
+                            .shortCode(rs.getString("short_code"))
+                            .originalUrl(rs.getString("original_url"))
+                            .totalClicks(rs.getLong("total_clicks"))
+                            .build(),
+                    tenantId, limit);
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 
     public Mono<List<TimeSeriesPoint>> getTimeSeries(String tenantId, String shortCode, String granularity) {
-        if (shortCode != null && !shortCode.isBlank()) {
-            return clickAggregateRepository
-                    .findByTenantIdAndShortCodeAndGranularityOrderByWindowStartAsc(
-                            tenantId, shortCode, granularity.toUpperCase())
-                    .map(this::toTimeSeriesPoint)
-                    .collectList();
-        }
+        return Mono.fromCallable(() -> {
+            String table = resolveAggregateTable(granularity);
 
-        return clickAggregateRepository
-                .findByTenantIdAndGranularityOrderByWindowStartDesc(
-                        tenantId, granularity.toUpperCase())
-                .map(this::toTimeSeriesPoint)
-                .collectSortedList(Comparator.comparing(TimeSeriesPoint::getWindowStart));
+            String sql;
+            Object[] params;
+
+            if (shortCode != null && !shortCode.isBlank()) {
+                sql = String.format("""
+                        SELECT
+                            window_start,
+                            short_code,
+                            sum(click_count) AS click_count,
+                            sum(unique_ip_count) AS unique_ip_count
+                        FROM %s
+                        WHERE tenant_id = ? AND short_code = ?
+                        GROUP BY window_start, short_code
+                        ORDER BY window_start ASC
+                        """, table);
+                params = new Object[]{tenantId, shortCode};
+            } else {
+                sql = String.format("""
+                        SELECT
+                            window_start,
+                            '' AS short_code,
+                            sum(click_count) AS click_count,
+                            sum(unique_ip_count) AS unique_ip_count
+                        FROM %s
+                        WHERE tenant_id = ?
+                        GROUP BY window_start
+                        ORDER BY window_start ASC
+                        """, table);
+                params = new Object[]{tenantId};
+            }
+
+            return jdbcTemplate.query(sql, (rs, rowNum) -> {
+                Timestamp windowStart = rs.getTimestamp("window_start");
+                return TimeSeriesPoint.builder()
+                        .windowStart(windowStart != null ? windowStart.toInstant() : null)
+                        .windowEnd(null)
+                        .shortCode(rs.getString("short_code"))
+                        .clickCount(rs.getLong("click_count"))
+                        .uniqueIpCount(rs.getLong("unique_ip_count"))
+                        .build();
+            }, params);
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 
     public Mono<List<RefererStat>> getRefererBreakdown(String tenantId, String shortCode) {
-        Criteria criteria = Criteria.where("tenant_id").is(tenantId);
-        if (shortCode != null && !shortCode.isBlank()) {
-            criteria = criteria.and("short_code").is(shortCode);
-        }
+        return Mono.fromCallable(() -> {
+            String sql;
+            Object[] params;
 
-        Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.match(criteria),
-                Aggregation.unwind("referers"),
-                Aggregation.group("referers.referer")
-                        .sum("referers.count").as("count"),
-                Aggregation.sort(org.springframework.data.domain.Sort.by(
-                        org.springframework.data.domain.Sort.Direction.DESC, "count")));
+            if (shortCode != null && !shortCode.isBlank()) {
+                sql = """
+                        SELECT
+                            if(referer = '', 'Direct', referer) AS referer,
+                            count() AS cnt
+                        FROM url_shortener.click_events
+                        WHERE tenant_id = ? AND short_code = ?
+                        GROUP BY referer
+                        ORDER BY cnt DESC
+                        """;
+                params = new Object[]{tenantId, shortCode};
+            } else {
+                sql = """
+                        SELECT
+                            if(referer = '', 'Direct', referer) AS referer,
+                            count() AS cnt
+                        FROM url_shortener.click_events
+                        WHERE tenant_id = ?
+                        GROUP BY referer
+                        ORDER BY cnt DESC
+                        """;
+                params = new Object[]{tenantId};
+            }
 
-        String collectionName = "click_aggregates_hourly";
-
-        return mongoTemplate.aggregate(aggregation, collectionName, Map.class)
-                .map(doc -> RefererStat.builder()
-                        .referer(normalizeReferer((String) doc.get("_id")))
-                        .count(((Number) doc.get("count")).longValue())
-                        .build())
-                .collectList();
+            return jdbcTemplate.query(sql, (rs, rowNum) ->
+                    RefererStat.builder()
+                            .referer(rs.getString("referer"))
+                            .count(rs.getLong("cnt"))
+                            .build(),
+                    params);
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 
-    private TimeSeriesPoint toTimeSeriesPoint(ClickAggregate aggregate) {
-        return TimeSeriesPoint.builder()
-                .windowStart(aggregate.getWindowStart())
-                .windowEnd(aggregate.getWindowEnd())
-                .shortCode(aggregate.getShortCode())
-                .clickCount(aggregate.getClickCount())
-                .uniqueIpCount(aggregate.getUniqueIpCount())
-                .build();
-    }
-
-    private String resolveCollectionName(String granularity) {
+    private String resolveAggregateTable(String granularity) {
         return switch (granularity.toUpperCase()) {
-            case "DAY" -> "click_aggregates_daily";
-            case "WEEK" -> "click_aggregates_weekly";
-            default -> "click_aggregates_hourly";
+            case "DAY" -> "url_shortener.click_aggregates_daily";
+            case "WEEK" -> "url_shortener.click_aggregates_weekly";
+            default -> "url_shortener.click_aggregates_hourly";
         };
-    }
-
-    private String normalizeReferer(String referer) {
-        if (referer == null || referer.isBlank()) {
-            return "Direct";
-        }
-        return referer;
     }
 }
