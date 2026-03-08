@@ -47,8 +47,8 @@ func (r *CachedURLRepository) FindByCode(ctx context.Context, code int64) (model
 	return entry, nil
 }
 
-func (r *CachedURLRepository) ListAll(ctx context.Context) ([]model.URLEntry, error) {
-	return r.baseRepository.ListAll(ctx)
+func (r *CachedURLRepository) ListAllByTenant(ctx context.Context, tenantID string) ([]model.URLEntry, error) {
+	return r.baseRepository.ListAllByTenant(ctx, tenantID)
 }
 
 func (r *CachedURLRepository) loadFromCache(ctx context.Context, code int64) (model.URLEntry, bool) {

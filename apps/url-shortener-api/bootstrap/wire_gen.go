@@ -8,12 +8,18 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/imankit007/url-shortner/controller"
 	"github.com/imankit007/url-shortner/infrastructure"
+	"github.com/imankit007/url-shortner/middleware"
 	"github.com/imankit007/url-shortner/repository"
 	"github.com/imankit007/url-shortner/service"
 	"github.com/imankit007/url-shortner/utils/counter"
 )
 
 func InitializeRouter() (*gin.Engine, error) {
+	authServicePublicKey, err := infrastructure.NewAuthServicePublicKey()
+	if err != nil {
+		return nil, err
+	}
+	authTokenIssuer := infrastructure.NewAuthTokenIssuer()
 	mongoClient, err := infrastructure.NewMongoClient()
 	if err != nil {
 		return nil, err
@@ -28,8 +34,10 @@ func InitializeRouter() (*gin.Engine, error) {
 	}
 	urlCodeCounter := counter.NewURLCodeCounter()
 	applicationBaseURL := NewApplicationBaseURL()
+	tokenAuthenticationService := service.NewTokenAuthenticationService(authServicePublicKey, authTokenIssuer)
+	jwtAuthenticationMiddleware := middleware.NewJWTAuthenticationMiddleware(tokenAuthenticationService)
 	urlService := service.NewURLService(urlRepository, hashIDEncoder, urlCodeCounter, applicationBaseURL)
 	urlController := controller.NewURLController(urlService)
-	engine := NewRouter(urlController)
+	engine := NewRouter(urlController, jwtAuthenticationMiddleware)
 	return engine, nil
 }

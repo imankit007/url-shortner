@@ -17,9 +17,9 @@ var (
 )
 
 type URLService interface {
-	CreateShortURLs(ctx context.Context, shortenRequest model.ShortenRequest) ([]model.ShortenResponse, error)
+	CreateShortURLs(ctx context.Context, authenticatedUser model.AuthenticatedUser, shortenRequest model.ShortenRequest) ([]model.ShortenResponse, error)
 	ResolveRedirectURL(ctx context.Context, code string) (string, error)
-	ListURLMappings(ctx context.Context) ([]model.URLEntry, error)
+	ListURLMappings(ctx context.Context, authenticatedUser model.AuthenticatedUser) ([]model.URLEntry, error)
 }
 
 type urlService struct {
@@ -43,7 +43,11 @@ func NewURLService(
 	}
 }
 
-func (s *urlService) CreateShortURLs(ctx context.Context, shortenRequest model.ShortenRequest) ([]model.ShortenResponse, error) {
+func (s *urlService) CreateShortURLs(
+	ctx context.Context,
+	authenticatedUser model.AuthenticatedUser,
+	shortenRequest model.ShortenRequest,
+) ([]model.ShortenResponse, error) {
 	shortenResponses := make([]model.ShortenResponse, 0, len(shortenRequest.Links))
 	for _, linkRequest := range shortenRequest.Links {
 		nextCodeValue := s.urlCodeCounter.Next()
@@ -54,8 +58,10 @@ func (s *urlService) CreateShortURLs(ctx context.Context, shortenRequest model.S
 		}
 
 		urlEntry := model.URLEntry{
-			OriginalURL: linkRequest.URL,
-			Code:        int64(nextCodeValue),
+			OriginalURL:     linkRequest.URL,
+			Code:            int64(nextCodeValue),
+			TenantID:        authenticatedUser.TenantID,
+			CreatedByUserID: authenticatedUser.UserID,
 		}
 
 		if err := s.urlRepository.Save(ctx, urlEntry); err != nil {
@@ -92,6 +98,6 @@ func (s *urlService) ResolveRedirectURL(ctx context.Context, code string) (strin
 	return "https://" + urlEntry.OriginalURL, nil
 }
 
-func (s *urlService) ListURLMappings(ctx context.Context) ([]model.URLEntry, error) {
-	return s.urlRepository.ListAll(ctx)
+func (s *urlService) ListURLMappings(ctx context.Context, authenticatedUser model.AuthenticatedUser) ([]model.URLEntry, error) {
+	return s.urlRepository.ListAllByTenant(ctx, authenticatedUser.TenantID)
 }

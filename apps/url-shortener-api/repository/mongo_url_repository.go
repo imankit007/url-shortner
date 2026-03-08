@@ -36,8 +36,8 @@ func (r *MongoURLRepository) FindByCode(ctx context.Context, code int64) (model.
 	return entry, nil
 }
 
-func (r *MongoURLRepository) ListAll(ctx context.Context) ([]model.URLEntry, error) {
-	cursor, err := r.urlCollection.Find(ctx, bson.M{})
+func (r *MongoURLRepository) ListAllByTenant(ctx context.Context, tenantID string) ([]model.URLEntry, error) {
+	cursor, err := r.urlCollection.Find(ctx, bson.M{"tenant_id": tenantID})
 	if err != nil {
 		return nil, err
 	}
